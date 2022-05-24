@@ -18,7 +18,7 @@ Omega_Europa = 2.1e-5  # Rotation rate [1/rad]
 rotation_period_Europa = 2*pi / Omega_Europa  # [s]
 
 f = 'C:/Users/Anika XPS13/1st UROP/Particle 0 y-position vs. z-position.gif'
-fn = 'C:/Users/Anika XPS13/1st UROP/icy_moon_long_channel_particles.nc'
+fn = 'C:/Users/Anika XPS13/1st UROP/icy_moon_long_channel_particles_sim7.nc'
 ds = nc.Dataset(fn)
 
 particle_id = ds['particle_id'][:]
@@ -97,16 +97,50 @@ plt.ylabel("Probability density")
 plt.savefig("transit_time_probability_distribution.png", dpi=300)
 
 km = 1000
+interval = 100
+y_min = int(min(ds['y'][0, :]))
+y_max = int(max(ds['y'][0, :]))
+print(y_min, y_max)
+
+plt.rcParams.update({'font.size': 10})
+
+for i, j in zip(range(-300000, 210000, interval * km), range(100, 330, 100)):
+    #if j == 200:
+    #    interval = 200
+    transit_times_middle = compute_transit_times_with_y_bounds(ds, i, i + interval * km)
+    '''if j >= 301:
+        plt.subplot("%i" % (j + 10))
+    else:
+        plt.subplot("%i" % j)'''
+    print('transit times', transit_times_middle/km)
+    print('bins =', np.percentile(transit_times_middle/km, [0,10,90,100]))
+
+    plt.subplot(311)
+    if i == -300000:
+        plt.hist(transit_times_middle/km, bins = np.percentile(transit_times_middle/km, [5,30,50,70,95]), density=True, color='red', label="%i km to %i km" % (i/km, i/km + interval), histtype='step')
+    elif i == -200000:
+        plt.hist(transit_times_middle/km, bins = np.percentile(transit_times_middle/km, [10,30,50,70,90]), density=True, color='purple', label="%i km to %i km" % (i/km, i/km + interval), histtype='step')
+    else:
+        plt.hist(transit_times_middle/km, bins = np.percentile(transit_times_middle/km, [10,30,50,70,90]), density=True, color='green', label="%i km to %i km" % (i/km, i/km + interval), histtype='step')
+    #plt.rc('ytick', labelsize=8) 
+    plt.title("Transit Times for Simulation 7", fontsize=15, y=1.2)
+    plt.xlabel("Transit Time (Rotation Periods)", fontsize=13)
+    plt.ylabel("Probability Density", fontsize=13)
+    plt.legend()
+    plt.savefig("Transit Times -300 km to 0 km Simulatio 7 bin_interval = 20%.png", bbox_inches="tight")
+    #plt.savefig("testing_transit_times%i.png" %i, dpi=300)
+'''    
+km = 1000
 y_min = int(min(ds['y'][0, :]))
 y_max = int(max(ds['y'][0, :]))
 print(y_min, y_max)
 for i, j in zip(range(-400, 400, 50), range(111, 1000, 10)):
     transit_times_middle = compute_transit_times_with_y_bounds(ds, i*km, (i + 50)*km) / rotation_period_Europa
     print("%i" % (j + 10))
-    '''if j >= 201:
+    if j >= 201:
         plt.subplot("%i" % (j + 10))
     else:
-        plt.subplot("%i" % j)'''
+        plt.subplot("%i" % j)
     plt.subplot(311)
     plt.hist(transit_times_middle, bins=75, density=True)
     plt.title("from y = %i km" % i)
@@ -114,8 +148,6 @@ for i, j in zip(range(-400, 400, 50), range(111, 1000, 10)):
     plt.savefig("testing_transit_times -400 to 400.png", dpi=300)
     #plt.savefig("testing_transit_times%i.png" %i, dpi=300)
     
-
-'''
 transit_times_top = compute_transit_times_with_y_bounds(ds, -300*km, -250*km) / rotation_period_Europa
 
 
