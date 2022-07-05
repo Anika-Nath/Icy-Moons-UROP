@@ -22,9 +22,13 @@ particles = ds.particle_id.values
 time = ds.time.values
 
 z = ds.z.values
-y = ds.y.values
 
+# We first find only particles that cross the threshold and ignore all the other particles
 is_z_gt_threshold = (z > threshold_z)
+particles_cross_threshold = np.any(is_z_gt_threshold, axis=0)
+z = z[:, particles_cross_threshold]
+y = ds.y[:, particles_cross_threshold].values
+particles = particles[particles_cross_threshold]
 
 # the following ymin and ymax gives us three ranges: -400km to -100km, -100km to 100km, and 100km to 400km
 ymins, ymaxs = [-400000, -100000, 100000], [-100000, 100000, 400000] # in meters
@@ -35,13 +39,12 @@ fig, ax = plt.subplots(1,1, figsize=(6,5))
 
 for ymin, ymax, c in zip(ymins, ymaxs, colors):
     is_initial_y_in_range = (y[0,:] < ymax) & (y[0,:] > ymin)
-    particles_cross_threshold_and_in_range = np.any(is_z_gt_threshold & is_initial_y_in_range, axis=0)
 
-    z_particles_that_cross_threshold = z[:, particles_cross_threshold_and_in_range]
+    z_particles_that_cross_threshold = z[:, is_initial_y_in_range]
 
     time_particles_cross_threshold_and_in_range = np.argmax(z_particles_that_cross_threshold > threshold_z, axis=0)
 
-    particles_in_range = particles[particles_cross_threshold_and_in_range]
+    particles_in_range = particles[is_initial_y_in_range]
     times_in_range = time[time_particles_cross_threshold_and_in_range]/rotation_period_Enceladus
     mean_transit_time = np.mean(times_in_range)
     median_transit_time = np.median(times_in_range)
