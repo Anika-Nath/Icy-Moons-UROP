@@ -26,7 +26,7 @@ num_particles = len(particle_id)
 
 def transit_time(particle_num, threshold_z=-1000):
     z = ds['z'][:, particle_num]
-    
+
     return ds['time'][np.argmax(z > threshold_z)]
 '''
     for i in range(len(z)):
