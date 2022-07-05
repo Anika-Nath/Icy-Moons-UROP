@@ -12,8 +12,9 @@ import matplotlib.pyplot as plt
 Omega_Enceladus = 5.3e-5  # Rotation rate [1/rad]
 rotation_period_Enceladus = 2*np.pi / Omega_Enceladus # [s]
 threshold_z = -1000
+ymax, ymin = 100000, -100000 # in meters
 
-fn = glob.glob("/net/fs08/d0/bire/mitgcm/enceladus_oceananigans/enceladus_expt13_2/run*/icy_moon_long_channel_particles.nc")
+fn = glob.glob("/net/fs08/d0/bire/mitgcm/enceladus_oceananigans/enceladus_expt16/run*/icy_moon_long_channel_particles.nc")
 
 ds = xr.open_mfdataset(fn, decode_times=False)
 
@@ -21,15 +22,18 @@ particles = ds.particle_id.values
 time = ds.time.values
 
 z = ds.z.values
+y = ds.y.values
+
+is_initial_y_in_range = (y[0,:] < ymax) & (y[0,:] > ymin)
 is_z_gt_threshold = (z > threshold_z)
-particles_cross_threshold = np.any(is_z_gt_threshold, axis=0)
+particles_cross_threshold_and_in_range = np.any(is_z_gt_threshold & is_initial_y_in_range, axis=0)
 
-z_particles_that_cross_threshold = z[:, particles_cross_threshold]
+z_particles_that_cross_threshold = z[:, particles_cross_threshold_and_in_range]
 
-time_particles_cross_threshold = np.argmax(z_particles_that_cross_threshold > threshold_z, axis=0)
+time_particles_cross_threshold_and_in_range = np.argmax(z_particles_that_cross_threshold > threshold_z, axis=0)
 
-particles = particles[particles_cross_threshold]
-times = time[time_particles_cross_threshold]/rotation_period_Enceladus
+particles = particles[particles_cross_threshold_and_in_range]
+times = time[time_particles_cross_threshold_and_in_range]/rotation_period_Enceladus
 
 fig, ax = plt.subplots(1,1, figsize=(6,5))
 ax.hist(times)
