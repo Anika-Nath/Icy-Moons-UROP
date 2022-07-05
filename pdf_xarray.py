@@ -29,9 +29,11 @@ is_z_gt_threshold = (z > threshold_z)
 # the following ymin and ymax gives us three ranges: -400km to -100km, -100km to 100km, and 100km to 400km
 ymins, ymaxs = [-400000, -100000, 100000], [-100000, 100000, 400000] # in meters
 
+colors = ['k', 'r', 'b']
+
 fig, ax = plt.subplots(1,1, figsize=(6,5))
 
-for ymin, ymax in zip(ymins, ymaxs):
+for ymin, ymax, c in zip(ymins, ymaxs, colors):
     is_initial_y_in_range = (y[0,:] < ymax) & (y[0,:] > ymin)
     particles_cross_threshold_and_in_range = np.any(is_z_gt_threshold & is_initial_y_in_range, axis=0)
 
@@ -41,8 +43,12 @@ for ymin, ymax in zip(ymins, ymaxs):
 
     particles_in_range = particles[particles_cross_threshold_and_in_range]
     times_in_range = time[time_particles_cross_threshold_and_in_range]/rotation_period_Enceladus
+    mean_transit_time = np.mean(times_in_range)
+    median_transit_time = np.median(times_in_range)
 
-    ax.hist(times_in_range, histtype='step', label=f'{ymin/1000} to {ymax/1000}km')
+    ax.hist(times_in_range, histtype='step', label=f'{ymin/1000} to {ymax/1000}km', color=c, linewidth=2)
+    ax.axvline(x=mean_transit_time, color=c, linestyle='-', linewidth=2)
+    ax.axvline(x=median_transit_time, color=c, linestyle='--', linewidth=2)
 
 ax.set_xlabel('Transit time (rot. periods)')
 ax.set_ylabel('Number of particles')
